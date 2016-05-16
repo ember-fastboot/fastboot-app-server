@@ -3,6 +3,9 @@
   "version": "1.0.0-beta.1",
   "description": "A production-ready app server for running Ember FastBoot apps",
   "main": "lib/fastboot-app-server.js",
+  "bin": {
+    "ember-fastboot": "./bin/ember-fastboot"
+  },
   "scripts": {
     "test": "NODE_ENV=test mocha"
   },
@@ -28,7 +31,8 @@
     "express": "^4.13.3",
     "fastboot": "^1.0.0-beta.1",
     "fastboot-express-middleware": "^1.0.0-beta.3",
-    "fs-promise": "^0.3.1"
+    "fs-promise": "^0.3.1",
+    "minimist": "^1.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
