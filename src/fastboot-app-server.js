@@ -15,6 +15,7 @@ class FastBootAppServer {
     this.notifier = options.notifier;
     this.cache = options.cache;
     this.ui = options.ui;
+    this.httpServer = options.httpServer;
 
     if (!this.ui) {
       let UI = require('./ui');
@@ -27,7 +28,8 @@ class FastBootAppServer {
       this.worker = new Worker({
         ui: this.ui,
         distPath: this.distPath || process.env.FASTBOOT_DIST_PATH,
-        cache: this.cache
+        cache: this.cache,
+        httpServer: this.httpServer,
       });
 
       this.worker.start();
@@ -65,6 +67,7 @@ class FastBootAppServer {
     if (this.downloader) { this.downloader.ui = this.ui; }
     if (this.notifier) { this.notifier.ui = this.ui; }
     if (this.cache) { this.cache.ui = this.ui; }
+    if (this.httpServer) { this.httpServer.ui = this.ui; }
   }
 
   initializeApp() {
