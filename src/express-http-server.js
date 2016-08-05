@@ -12,6 +12,7 @@ class ExpressHTTPServer {
     this.username = options.username;
     this.password = options.password;
     this.cache = options.cache;
+    this.userMiddleware = options.userMiddleware;
     this.gzip = options.gzip || false;
 
     this.app = express();
@@ -32,6 +33,10 @@ class ExpressHTTPServer {
 
     if (this.cache) {
       app.get('/*', this.buildCacheMiddleware());
+    }
+
+    if (this.userMiddleware) {
+      app.get('/*', this.userMiddleware);
     }
 
     if (this.distPath) {
