@@ -37,6 +37,10 @@ class ExpressHTTPServer {
     if (this.distPath) {
       app.get('/', middleware);
       app.use(express.static(this.distPath));
+      app.get('/assets/*', function(req, res) {
+        res.status(404);
+        res.send();
+      });
     }
 
     app.get('/*', middleware);
