@@ -14,6 +14,8 @@ class FastBootAppServer {
     this.downloader = options.downloader;
     this.notifier = options.notifier;
     this.cache = options.cache;
+    this.userMiddlewareBefore = options.userMiddlewareBefore;
+    this.userMiddlewareAfter = options.userMiddlewareAfter;
     this.ui = options.ui;
     this.gzip = options.gzip || false;
     this.httpServer = options.httpServer;
@@ -30,6 +32,8 @@ class FastBootAppServer {
         ui: this.ui,
         distPath: this.distPath || process.env.FASTBOOT_DIST_PATH,
         cache: this.cache,
+        userMiddlewareBefore: this.userMiddlewareBefore,
+        userMiddlewareAfter: this.userMiddlewareAfter,
         gzip: this.gzip,
         httpServer: this.httpServer
       });
