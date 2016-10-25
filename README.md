@@ -87,7 +87,7 @@ server.start();
 or extend the provided HTTP server and override any methods you need:
 ```js
 // my-custom-express-server.js
-const ExpressHTTPServer = require('fastboot-app-server/lib/express-http-server');
+const ExpressHTTPServer = require('fastboot-app-server/src/express-http-server');
 class MyCustomExpressServer extends ExpressHTTPServer {
   serve(middleware) {
     // put your custom code here, don't forget to add fastboot etc.
