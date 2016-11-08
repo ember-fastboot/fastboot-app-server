@@ -19,6 +19,7 @@ class FastBootAppServer {
     this.username = options.username;
     this.password = options.password;
     this.httpServer = options.httpServer;
+    this.staticAssetOptions = options.staticAssetOptions;
     this.beforeMiddleware = options.beforeMiddleware;
     this.afterMiddleware = options.afterMiddleware;
 
@@ -38,6 +39,7 @@ class FastBootAppServer {
         username: this.username,
         password: this.password,
         httpServer: this.httpServer,
+        staticAssetOptions: this.staticAssetOptions,
         beforeMiddleware: this.beforeMiddleware,
         afterMiddleware: this.afterMiddleware
       });

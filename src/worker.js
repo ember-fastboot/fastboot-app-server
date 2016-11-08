@@ -13,6 +13,8 @@ class Worker {
     this.gzip = options.gzip;
     this.username = options.username;
     this.password = options.password;
+
+    this.staticAssetOptions = options.staticAssetOptions;
     this.beforeMiddleware = options.beforeMiddleware;
     this.afterMiddleware = options.afterMiddleware;
 
@@ -24,8 +26,9 @@ class Worker {
         gzip: this.gzip,
         username: this.username,
         password: this.password,
+        staticAssetOptions: this.staticAssetOptions,
         beforeMiddleware: this.beforeMiddleware,
-        afterMiddleware: this.afterMiddleware,
+        afterMiddleware: this.afterMiddleware
       });
     }
 

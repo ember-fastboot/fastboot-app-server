@@ -56,6 +56,18 @@ describe("FastBootAppServer", function() {
       });
   });
 
+  it("serves static assets configurably", function () {
+    return runServer('custom-static-asset-options-app-server')
+      .then(() => request('http://localhost:3000/assets/fastboot-test.js'))
+      .then(response => {
+        expect(response.headers['cache-control']).to.equal('public, max-age=31536000');
+        expect(response.headers['x-test-path']).to.contain('assets/fastboot-test.js');
+        expect(JSON.parse(response.headers['x-test-stat'])).to.be.an('object');
+        expect(response.statusCode).to.equal(200);
+        expect(response.body).to.contain('"use strict";');
+      });
+  });
+
   it("returns a 404 status code for non-existent assets",  function() {
     return runServer('basic-app-server')
       .then(() => request('http://localhost:3000/assets/404-does-not-exist.js'))
