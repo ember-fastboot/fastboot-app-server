@@ -17,6 +17,13 @@ class ExpressHTTPServer {
     this.gzip = options.gzip || false;
     this.beforeMiddleware = options.beforeMiddleware || noop;
     this.afterMiddleware = options.afterMiddleware || noop;
+    this.staticFolderConfig = options.assetsCacheControl ? {
+      setHeaders: function(res, path, stat) {
+        if (path.indexOf('/assets/') !== -1) {
+          res.set('Cache-Control', options.assetsCacheControl);
+        }
+      }
+    } : {};
 
     this.app = express();
   }
@@ -43,7 +50,7 @@ class ExpressHTTPServer {
 
     if (this.distPath) {
       app.get('/', fastbootMiddleware);
-      app.use(express.static(this.distPath));
+      app.use(express.static(this.distPath, this.staticFolderConfig));
       app.get('/assets/*', function(req, res) {
         res.sendStatus(404);
       });

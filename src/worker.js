@@ -15,6 +15,7 @@ class Worker {
     this.password = options.password;
     this.beforeMiddleware = options.beforeMiddleware;
     this.afterMiddleware = options.afterMiddleware;
+    this.assetsCacheControl = options.assetsCacheControl;
 
     if (!this.httpServer) {
       this.httpServer = new ExpressHTTPServer({
@@ -26,6 +27,7 @@ class Worker {
         password: this.password,
         beforeMiddleware: this.beforeMiddleware,
         afterMiddleware: this.afterMiddleware,
+        assetsCacheControl: this.assetsCacheControl
       });
     }
 

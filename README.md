@@ -222,3 +222,14 @@ let server = new FastBootAppServer({
   password: 'zoey'
 });
 ```
+
+## Cache control header for static assets
+
+By default the static assets are served with cache-control of 0. You can override this by 
+providing `assetsCacheControl` option:
+
+```js
+let server = new FastBootAppServer({
+  assetsCacheControl: 'max-age=365000000, immutable'
+});
+```

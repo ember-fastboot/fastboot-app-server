@@ -21,6 +21,7 @@ class FastBootAppServer {
     this.httpServer = options.httpServer;
     this.beforeMiddleware = options.beforeMiddleware;
     this.afterMiddleware = options.afterMiddleware;
+    this.assetsCacheControl = options.assetsCacheControl;
 
     if (!this.ui) {
       let UI = require('./ui');
@@ -39,7 +40,8 @@ class FastBootAppServer {
         password: this.password,
         httpServer: this.httpServer,
         beforeMiddleware: this.beforeMiddleware,
-        afterMiddleware: this.afterMiddleware
+        afterMiddleware: this.afterMiddleware,
+        assetsCacheControl: this.assetsCacheControl
       });
 
       this.worker.start();
