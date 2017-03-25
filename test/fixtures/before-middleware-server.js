@@ -10,7 +10,7 @@ function setStatusCode418(req, res, next) {
 }
 
 function setXTestHeader(req, res, next) {
-  res.set('X-Test-Header', 'testing')
+  res.set('X-Test-Header', 'before-middleware-testing')
   next();
 }
 

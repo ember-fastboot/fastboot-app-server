@@ -75,17 +75,26 @@ describe("FastBootAppServer", function() {
       .then(() => request('http://localhost:3000'))
       .then(response => {
         expect(response.statusCode).to.equal(418);
-        expect(response.headers['x-test-header']).to.equal('testing');
+        expect(response.headers['x-test-header']).to.equal('before-middleware-testing');
         expect(response.body).to.equal(JSON.stringify({ send: 'json back'}));
       });
   });
 
   it("executes afterMiddleware when there is an error", function() {
-    return runServer('after-middleware-server')
+    return runServer('after-middleware-server-broken')
       .then(() => request('http://localhost:3000'))
       .then(response => {
         expect(response.body).to.not.match(/error/);
-        expect(response.headers['x-test-header']).to.equal('testing');
+        expect(response.headers['x-test-header']).to.equal('after-middleware-testing');
+      });
+  });
+
+   it("executes afterMiddleware", function() {
+    return runServer('after-middleware-server')
+      .then(() => request('http://localhost:3000'))
+      .then(response => {
+        expect(response.statusCode).to.equal(200);
+        expect(response.headers['x-test-header']).to.equal('after-middleware-testing');
       });
   });
 

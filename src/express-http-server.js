@@ -22,6 +22,7 @@ class ExpressHTTPServer {
   }
 
   serve(fastbootMiddleware) {
+
     let app = this.app;
     let username = this.username;
     let password = this.password;
