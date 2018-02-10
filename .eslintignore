@@ -1,0 +1,3 @@
+test/fixtures/basic-app/*
+test/fixtures/broken-app/*
+test/fixtures/global-app/*

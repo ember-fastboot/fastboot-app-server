@@ -13,7 +13,7 @@ function setXTestHeader(req, res, next) {
   next();
 }
 
-function sendJsonAndTerminate(req, res, next) {
+function sendJsonAndTerminate(req, res) {
   res.json({ send: 'json back' });
   res.send();
 }
