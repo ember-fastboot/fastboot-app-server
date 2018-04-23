@@ -20,7 +20,7 @@ class ExpressHTTPServer {
     this.beforeMiddleware = options.beforeMiddleware || noop;
     this.afterMiddleware = options.afterMiddleware || noop;
 
-    this.app = express();
+    this.app = options.app || express();
   }
 
   serve(fastbootMiddleware) {
