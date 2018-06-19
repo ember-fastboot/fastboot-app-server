@@ -18,6 +18,7 @@ class FastBootAppServer {
     this.gzip = options.gzip;
     this.host = options.host;
     this.port = options.port;
+    this.path = options.path;
     this.username = options.username;
     this.password = options.password;
     this.httpServer = options.httpServer;
@@ -41,6 +42,7 @@ class FastBootAppServer {
         gzip: this.gzip,
         host: this.host,
         port: this.port,
+        path: this.path,
         username: this.username,
         password: this.password,
         httpServer: this.httpServer,
@@ -56,6 +58,7 @@ class FastBootAppServer {
         (process.env.NODE_ENV === 'test' ? 1 : null) ||
         os.cpus().length;
 
+      assert(!(this.path && this.port), "FastBootAppServer must be provided with either an IPC path or a port option, but not both.");
       assert(this.distPath || this.downloader, "FastBootAppServer must be provided with either a distPath or a downloader option.");
       assert(!(this.distPath && this.downloader), "FastBootAppServer must be provided with either a distPath or a downloader option, but not both.");
     }

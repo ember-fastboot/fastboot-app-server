@@ -43,6 +43,7 @@ let server = new FastBootAppServer({
   gzip: true, // Optional - Enables gzip compression.
   host: '0.0.0.0', // Optional - Sets the host the server listens on.
   port: 4000, // Optional - Sets the port the server listens on (defaults to the PORT env var or 3000).
+  path: '\\\\.\\pipe\\testpipe', // Optional - Sets the path to the named pipe or socket to use (specify this or port, not both). 
   sandboxGlobals: { GLOBAL_VALUE: MY_GLOBAL }, // Optional - Make values available to the Ember app running in the FastBoot server, e.g. "MY_GLOBAL" will be available as "GLOBAL_VALUE"
   chunkedResponse: true // Optional - Opt-in to chunked transfer encoding, transferring the head, body and potential shoeboxes in separate chunks. Chunked transfer encoding should have a positive effect in particular when the app transfers a lot of data in the shoebox.
 });
@@ -237,3 +238,16 @@ let server = new FastBootAppServer({
   password: 'zoey'
 });
 ```
+
+## Named pipes
+
+Some tools (in particular, `iisnode`) use local named pipes rather than TCP to 
+communicate to the HTTP server running in node. The pipe should be placed in 
+the `path` option rather than the `port` option (even though it arrives from 
+`iisnode` via `process.env.PORT`).
+
+When testing with pipes, node-based HTTP clients should supply the pipe in 
+the `socketPath` option of `http.request`. The `request` and `request-promise` 
+packages, often used because they simplify HTTP interaction, do not support a 
+socket path and hence cannot be used for named pipes. (This is one of the 
+outlying cases it simplified away.)

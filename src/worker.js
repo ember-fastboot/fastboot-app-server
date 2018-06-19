@@ -13,6 +13,7 @@ class Worker {
     this.gzip = options.gzip;
     this.host = options.host;
     this.port = options.port;
+    this.path = options.path;
     this.username = options.username;
     this.password = options.password;
     this.beforeMiddleware = options.beforeMiddleware;
@@ -28,6 +29,7 @@ class Worker {
         gzip: this.gzip,
         host: this.host,
         port: this.port,
+        path: this.path,
         username: this.username,
         password: this.password,
         beforeMiddleware: this.beforeMiddleware,

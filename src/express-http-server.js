@@ -17,6 +17,7 @@ class ExpressHTTPServer {
     this.gzip = options.gzip || false;
     this.host = options.host;
     this.port = options.port;
+    this.path = options.path;
     this.beforeMiddleware = options.beforeMiddleware || noop;
     this.afterMiddleware = options.afterMiddleware || noop;
 
@@ -56,14 +57,21 @@ class ExpressHTTPServer {
     this.afterMiddleware(app);
 
     return new Promise(resolve => {
-      let listener = app.listen(this.port || process.env.PORT || 3000, this.host || process.env.HOST, () => {
-        let host = listener.address().address;
-        let port = listener.address().port;
+      if (this.path) {
+        let listener = app.listen(this.path, () => {
+          this.ui.writeLine('HTTP server started on named pipe; path=%s', listener.address());
+          resolve();
+        });
+      } else {
+        let listener = app.listen(this.port || process.env.PORT || 3000, this.host || process.env.HOST, () => {
+          let host = listener.address().address;
+          let port = listener.address().port;
 
-        this.ui.writeLine('HTTP server started; url=http://%s:%s', host, port);
+          this.ui.writeLine('HTTP server started; url=http://%s:%s', host, port);
 
-        resolve();
-      });
+          resolve();
+        });
+      }
     });
   }
 

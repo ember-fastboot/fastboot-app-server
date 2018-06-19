@@ -5,8 +5,16 @@ const fork              = require('child_process').fork;
 const expect            = require('chai').expect;
 const FastBootAppServer = require('../src/fastboot-app-server');
 const request           = require('request-promise').defaults({ simple: false, resolveWithFullResponse: true });
+const http              = require('http');
+const fs                = require('fs');
 
 let server;
+let pipe = "";
+if (process.platform === "win32") {
+    pipe = '\\\\.\\pipe\\testpipe';
+} else {
+    pipe = 'test.pipe';
+}
 
 describe("FastBootAppServer", function() {
   this.timeout(3000);
@@ -15,7 +23,13 @@ describe("FastBootAppServer", function() {
     if (server) {
       server.kill();
     }
-  });
+    if (process.platform !== "win32") {
+      // must clean up pipe because server was killed, not closed
+      if (fs.existsSync(pipe)) {
+        fs.unlink(pipe);
+      }
+    }
+});
 
   it("throws if no distPath or downloader is provided", function() {
     expect(() => {
@@ -30,6 +44,16 @@ describe("FastBootAppServer", function() {
         distPath: 'some/dist/path'
       });
     }).to.throw(/FastBootAppServer must be provided with either a distPath or a downloader option, but not both/);
+  });
+
+  it("throws if both a path and port are provided", function() {
+    expect(() => {
+      new FastBootAppServer({
+        distPath: 'some/dist/path',
+        path: 'tmp/unix.sock',
+        port: 3000
+      });
+    }).to.throw(/FastBootAppServer must be provided with either an IPC path or a port option, but not both/);
   });
 
   it("serves an HTTP 500 response if the app can't be found", function() {
@@ -111,6 +135,24 @@ describe("FastBootAppServer", function() {
       });
   });
 
+  it("responds on the configured IPC path", function() {
+    let requestOptions = {
+      socketPath: pipe,
+      method: 'GET',
+      path:'/'
+    };
+    return runServer('ipc-app-server')
+      .then(() => httpIpcRequest(requestOptions))
+      .then(response => {
+        expect(response.statusCode).to.equal(200);
+        return httpIPCResponseData(response);
+      })
+      .then(data => {
+        let body = data.toString();
+        expect(body).to.contain('Welcome to Ember');
+      });
+  });
+
   it("allows setting sandbox globals", function() {
     return runServer('sandbox-globals-app-server')
       .then(() => request('http://localhost:3000/'))
@@ -120,6 +162,26 @@ describe("FastBootAppServer", function() {
       });
   });
 });
+
+function httpIpcRequest(options) {
+  return new Promise(function (resolve, reject) {
+    let req = http.request(options);
+    req.on('response', (response) => {
+      resolve(response);
+    });
+    req.on('error', (err) => {
+      reject(err);
+    });
+    req.end();
+  });
+}
+function httpIPCResponseData(response) {
+  return new Promise(function (resolve, reject) {
+    response.on('data', function(chunk) {
+      resolve(chunk);
+    });
+  });
+}
 
 function runServer(name) {
   return new Promise((res, rej) => {
