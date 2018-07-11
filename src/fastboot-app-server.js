@@ -35,24 +35,7 @@ class FastBootAppServer {
     this.propagateUI();
 
     if (cluster.isWorker) {
-      this.worker = new Worker({
-        ui: this.ui,
-        distPath: this.distPath || process.env.FASTBOOT_DIST_PATH,
-        cache: this.cache,
-        gzip: this.gzip,
-        host: this.host,
-        port: this.port,
-        path: this.path,
-        username: this.username,
-        password: this.password,
-        httpServer: this.httpServer,
-        beforeMiddleware: this.beforeMiddleware,
-        afterMiddleware: this.afterMiddleware,
-        sandboxGlobals: this.sandboxGlobals,
-        chunkedResponse: this.chunkedResponse,
-      });
-
-      this.worker.start();
+      this.startWorker();
     } else {
       this.workerCount = options.workerCount ||
         (process.env.NODE_ENV === 'test' ? 1 : null) ||
@@ -69,7 +52,7 @@ class FastBootAppServer {
 
     return this.initializeApp()
       .then(() => this.subscribeToNotifier())
-      .then(() => this.forkWorkers())
+      .then(() => this.startWorkers())
       .then(() => {
         if (this.initializationError) {
           this.broadcast({ event: 'error', error: this.initializationError.stack });
@@ -89,6 +72,26 @@ class FastBootAppServer {
     if (this.notifier) { this.notifier.ui = this.ui; }
     if (this.cache) { this.cache.ui = this.ui; }
     if (this.httpServer) { this.httpServer.ui = this.ui; }
+  }
+
+  startWorker() {
+    this.worker = new Worker({
+      ui: this.ui,
+      distPath: this.distPath || process.env.FASTBOOT_DIST_PATH,
+      cache: this.cache,
+      gzip: this.gzip,
+      host: this.host,
+      port: this.port,
+      path: this.path,
+      username: this.username,
+      password: this.password,
+      httpServer: this.httpServer,
+      beforeMiddleware: this.beforeMiddleware,
+      afterMiddleware: this.afterMiddleware,
+      sandboxGlobals: this.sandboxGlobals,
+      chunkedResponse: this.chunkedResponse,
+    });
+    this.worker.start();
   }
 
   initializeApp() {
@@ -140,17 +143,40 @@ class FastBootAppServer {
     }
   }
 
-  broadcast(message) {
-    let workers = cluster.workers;
+  // Methods generalized for behavior with and without clustering workers
 
-    for (let id in workers) {
-      workers[id].send(message);
+  startWorkers() {
+    if (this.workerCount >= 0) {
+      return this.forkWorkers();
+    } else {
+      this.startWorker();
+      return new Promise(resolve => {
+        this.ui.writeLine('worker online');
+        process.on('message', message => {
+          if (message.event === 'http-online') {
+            resolve();
+          }
+        });
+      });
+    }
+  }
+
+  broadcast(message) {
+    if (this.workerCount < 0) {
+      this.worker.handleMessage(message);
+    } else {
+      let workers = cluster.workers;
+
+      for (let id in workers) {
+        workers[id].send(message);
+      }  
     }
   }
 
   reload() {
     this.broadcast({ event: 'reload' });
   }
+  // Plumbing for forking worker processes for clustering
 
   forkWorkers() {
     let promises = [];

@@ -184,11 +184,15 @@ function httpIPCResponseData(response) {
 }
 
 function runServer(name) {
+  let options = {
+    silent: true
+  };
+  if (process.platform === "win32") { // Necessary for tests to run without timing out on Windows
+    options.execArgv = [];
+  }
   return new Promise((res, rej) => {
     let serverPath = path.join(__dirname, 'fixtures', `${name}.js`);
-    server = fork(serverPath, {
-      silent: true
-    });
+    server = fork(serverPath, options);
 
     server.on('error', rej);
 

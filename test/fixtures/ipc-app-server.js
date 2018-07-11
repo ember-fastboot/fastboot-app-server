@@ -11,7 +11,8 @@ if (process.platform === "win32") {
 }
 var server = new FastBootAppServer({
   path: pipe,
-  distPath: path.resolve(__dirname, './basic-app')
+  distPath: path.resolve(__dirname, './basic-app'),
+  workerCount: -1
 });
 
 server.start();

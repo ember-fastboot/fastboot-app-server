@@ -88,7 +88,11 @@ class Worker {
     this.ui.writeLine('starting HTTP server');
     return this.httpServer.serve(this.middleware)
       .then(() => {
-        process.send({ event: 'http-online' });
+        if (process.send) {
+          process.send({ event: 'http-online' });
+        } else {
+          process.emit('message', { event: 'http-online' });
+        }
       });
   }
 
