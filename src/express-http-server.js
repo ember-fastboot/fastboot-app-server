@@ -87,23 +87,40 @@ class ExpressHTTPServer {
   }
 
   interceptResponseCompletion(path, res) {
-    let send = res.send.bind(res);
+    let prevWrite = res.write;
+    let prevEnd = res.end;
+    let chunks = [];
+    let cache = this.cache;
+    let ui = this.ui;
 
-    res.send = (body) => {
-      let ret = send(body);
+    let pushChunk = (chunk) => {
+      if (!chunk) return;
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    };
 
-      this.cache.put(path, body, res)
+    res.write = function(chunk) {
+      pushChunk(chunk);
+      prevWrite.apply(res, arguments);
+    };
+
+    res.end = function(chunk) {
+      pushChunk(chunk);
+
+      let body = Buffer.concat(chunks).toString();
+
+      cache.put(path, body, res)
         .then(() => {
-          this.ui.writeLine(`stored in cache; path=${path}`);
+          ui.writeLine(`stored in cache; path=${path}`);
         })
         .catch(() => {
           let truncatedBody = body.replace(/\n/g).substr(0, 200);
-          this.ui.writeLine(`error storing cache; path=${path}; body=${truncatedBody}...`);
+          ui.writeLine(`error storing cache; path=${path}; body=${truncatedBody}...`);
         });
 
-      res.send = send;
+      res.write = prevWrite;
+      res.end = prevEnd;
 
-      return ret;
+      prevEnd.apply(res, arguments);
     };
   }
 }
