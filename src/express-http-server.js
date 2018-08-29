@@ -30,17 +30,17 @@ class ExpressHTTPServer {
 
     this.beforeMiddleware(app);
 
+    if (this.cache) {
+      app.get('/*', this.buildCacheMiddleware());
+    }
+
     if (this.gzip) {
-      this.app.use(require('compression')());
+      app.use(require('compression')());
     }
 
     if (username !== undefined || password !== undefined) {
       this.ui.writeLine(`adding basic auth; username=${username}; password=${password}`);
       app.use(basicAuth(username, password));
-    }
-
-    if (this.cache) {
-      app.get('/*', this.buildCacheMiddleware());
     }
 
     if (this.distPath) {
@@ -75,12 +75,12 @@ class ExpressHTTPServer {
         .then(response => {
           if (response) {
             this.ui.writeLine(`cache hit; path=${path}`);
-            res.send(response);
+            res.body = response;
           } else {
             this.ui.writeLine(`cache miss; path=${path}`);
             this.interceptResponseCompletion(path, res);
-            next();
           }
+          next();
         })
         .catch(() => next());
     };
