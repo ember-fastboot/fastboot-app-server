@@ -38,6 +38,16 @@ class ExpressHTTPServer {
       app.use(require('compression')());
     }
 
+    if (this.cache) {
+      app.use(function(req, res, next) {
+        if (res.body) {
+          res.send(res.body);
+        } else {
+          next();
+        }
+      });
+    }
+
     if (username !== undefined || password !== undefined) {
       this.ui.writeLine(`adding basic auth; username=${username}; password=${password}`);
       app.use(basicAuth(username, password));
