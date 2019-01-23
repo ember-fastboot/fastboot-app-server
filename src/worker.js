@@ -19,6 +19,7 @@ class Worker {
     this.afterMiddleware = options.afterMiddleware;
     this.sandboxGlobals = options.sandboxGlobals;
     this.chunkedResponse = options.chunkedResponse;
+    this.resilient = options.resilient;
 
     if (!this.httpServer) {
       this.httpServer = new ExpressHTTPServer({
@@ -74,6 +75,7 @@ class Worker {
     this.fastboot = new FastBoot({
       distPath: this.distPath,
       sandboxGlobals: this.sandboxGlobals,
+      resilient: this.resilient,
     });
 
     return fastbootMiddleware({
