@@ -79,11 +79,13 @@ describe("FastBootAppServer", function() {
       });
   });
 
-  it("executes afterMiddleware when there is an error", function() {
+  it("works with resilient mode, as long as there is an afterMiddleware that calls next()", function() {
     return runServer('after-middleware-server')
       .then(() => request('http://localhost:3000'))
       .then(response => {
         expect(response.body).to.not.match(/error/);
+        expect(response.body).to.contain('FastbootTest');
+        expect(response.body).to.contain('Original body');
         expect(response.headers['x-test-header']).to.equal('testing');
       });
   });
@@ -107,6 +109,7 @@ describe("FastBootAppServer", function() {
       .then(() => request('http://127.0.0.1:4100/'))
       .then((response) => {
         expect(response.statusCode).to.equal(200);
+        expect(response.body).to.contain('FastbootTest');
         expect(response.body).to.contain('Welcome to Ember');
       });
   });
