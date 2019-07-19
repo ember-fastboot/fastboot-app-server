@@ -163,28 +163,45 @@ class FastBootAppServer {
     let env = this.buildWorkerEnv();
     let worker = cluster.fork(env);
 
-    this.ui.writeLine(`forked worker ${worker.process.pid}`);
-
-    worker.on('exit', (code, signal) => {
-      if (signal) {
-        this.ui.writeLine(`worker was killed by signal: ${signal}`);
-      } else if (code !== 0) {
-        this.ui.writeLine(`worker exited with error code: ${code}`);
-      } else {
-        this.ui.writeLine(`worker exited`);
-      }
-
-      this.forkWorker();
+    let firstBootResolve;
+    let firstBootReject;
+    const firstBootPromise = new Promise((resolve, reject) => {
+      firstBootResolve = resolve;
+      firstBootReject = reject;
     });
 
-    return new Promise(resolve => {
+    this.ui.writeLine(`forked worker ${worker.process.pid}`);
+
+    worker.on('online', () => {
       this.ui.writeLine('worker online');
+
       worker.on('message', message => {
         if (message.event === 'http-online') {
-          resolve();
+          firstBootResolve();
         }
       });
     });
+
+    worker.on('exit', (code, signal) => {
+      let error;
+
+      if (signal) {
+        error = new Error(`Worker ${(worker.process.pid)} was killed by signal: ${signal}`)
+      } else if (code !== 0) {
+        error = new Error(`Worker ${(worker.process.pid)} exited with an error code: ${code}`)
+      } else {
+        error = new Error(`Worker ${(worker.process.pid)} exited gracefully`)
+      }
+
+      if (this.initializationError) {
+        firstBootReject(error);
+      } else {
+        this.ui.writeLine(error);
+        this.forkWorker();
+      }
+    });
+
+    return firstBootPromise;
   }
 
   buildWorkerEnv() {
