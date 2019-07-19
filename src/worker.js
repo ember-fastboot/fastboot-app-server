@@ -46,10 +46,10 @@ class Worker {
       this.middleware = this.noAppMiddleware();
     } else {
       this.middleware = this.buildMiddleware();
-      this.bindEvents();
-      this.serveHTTP();
     }
 
+    this.bindEvents();
+    this.serveHTTP();
   }
 
   bindEvents() {
