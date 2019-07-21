@@ -26,6 +26,8 @@ class FastBootAppServer {
     this.sandboxGlobals = options.sandboxGlobals;
     this.chunkedResponse = options.chunkedResponse;
 
+    this._clusterIsInitialized = false;
+
     if (!this.ui) {
       let UI = require('./ui');
       this.ui = new UI();
@@ -70,6 +72,8 @@ class FastBootAppServer {
       .then(() => {
         if (this.initializationError) {
           this.broadcast({ event: 'error', error: this.initializationError.stack });
+        } else {
+          this._clusterIsInitialized = true;
         }
       })
       .catch(err => {
@@ -193,7 +197,8 @@ class FastBootAppServer {
         error = new Error(`Worker ${(worker.process.pid)} exited gracefully`)
       }
 
-      if (this.initializationError) {
+      if (!this._clusterIsInitialized) {
+        // dont attempt to fork again if never a healthy first boot
         firstBootReject(error);
       } else {
         this.ui.writeLine(error);
