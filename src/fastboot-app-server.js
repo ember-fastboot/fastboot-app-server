@@ -66,10 +66,17 @@ class FastBootAppServer {
   start() {
     if (cluster.isWorker) { return; }
 
-    return this.initializeApp()
+    const forkWorkersPromise = this.initializeApp()
       .then(() => this.subscribeToNotifier())
       .then(() => this.forkWorkers())
-      .then(() => {
+
+    // fail hard if first boot fails
+    forkWorkersPromise.catch((error) => {
+      this.ui.writeLine(error);
+      process.exit(1);
+    });
+
+    return forkWorkersPromise.then(() => {
         if (this.initializationError) {
           this.broadcast({ event: 'error', error: this.initializationError.stack });
         } else {
