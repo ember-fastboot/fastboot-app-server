@@ -30,17 +30,27 @@ class ExpressHTTPServer {
 
     this.beforeMiddleware(app);
 
+    if (this.cache) {
+      app.get('/*', this.buildCacheMiddleware());
+    }
+
     if (this.gzip) {
-      this.app.use(require('compression')());
+      app.use(require('compression')());
+    }
+
+    if (this.cache) {
+      app.use(function(req, res, next) {
+        if (res.body) {
+          res.send(res.body);
+        } else {
+          next();
+        }
+      });
     }
 
     if (username !== undefined || password !== undefined) {
       this.ui.writeLine(`adding basic auth; username=${username}; password=${password}`);
       app.use(basicAuth(username, password));
-    }
-
-    if (this.cache) {
-      app.get('/*', this.buildCacheMiddleware());
     }
 
     if (this.distPath) {
@@ -75,35 +85,52 @@ class ExpressHTTPServer {
         .then(response => {
           if (response) {
             this.ui.writeLine(`cache hit; path=${path}`);
-            res.send(response);
+            res.body = response;
           } else {
             this.ui.writeLine(`cache miss; path=${path}`);
             this.interceptResponseCompletion(path, res);
-            next();
           }
+          next();
         })
         .catch(() => next());
     };
   }
 
   interceptResponseCompletion(path, res) {
-    let send = res.send.bind(res);
+    let prevWrite = res.write;
+    let prevEnd = res.end;
+    let chunks = [];
+    let cache = this.cache;
+    let ui = this.ui;
 
-    res.send = (body) => {
-      let ret = send(body);
+    let pushChunk = (chunk) => {
+      if (!chunk) return;
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    };
 
-      this.cache.put(path, body, res)
+    res.write = function(chunk) {
+      pushChunk(chunk);
+      prevWrite.apply(res, arguments);
+    };
+
+    res.end = function(chunk) {
+      pushChunk(chunk);
+
+      let body = Buffer.concat(chunks).toString();
+
+      cache.put(path, body, res)
         .then(() => {
-          this.ui.writeLine(`stored in cache; path=${path}`);
+          ui.writeLine(`stored in cache; path=${path}`);
         })
         .catch(() => {
           let truncatedBody = body.replace(/\n/g).substr(0, 200);
-          this.ui.writeLine(`error storing cache; path=${path}; body=${truncatedBody}...`);
+          ui.writeLine(`error storing cache; path=${path}; body=${truncatedBody}...`);
         });
 
-      res.send = send;
+      res.write = prevWrite;
+      res.end = prevEnd;
 
-      return ret;
+      prevEnd.apply(res, arguments);
     };
   }
 }
