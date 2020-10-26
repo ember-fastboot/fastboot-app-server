@@ -69,6 +69,20 @@ describe("FastBootAppServer", function() {
       });
   });
 
+  it("returns a 404 status code for forbidden assets",  function() {
+    return runServer('basic-app-server')
+      .then(() => request('http://localhost:3000/package.json'))
+      .then(response => {
+        expect(response.statusCode).to.equal(404);
+        expect(response.body).to.match(/Not Found/);
+      })
+      .then(() => request('http://localhost:3000/'))
+      .then(response => {
+        expect(response.statusCode).to.equal(200);
+        expect(response.body).to.contain('Welcome to Ember');
+      });
+  });
+
   it("executes beforeMiddleware", function() {
     return runServer('before-middleware-server')
       .then(() => request('http://localhost:3000'))

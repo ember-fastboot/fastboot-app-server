@@ -19,6 +19,12 @@ class ExpressHTTPServer {
     this.port = options.port;
     this.beforeMiddleware = options.beforeMiddleware || noop;
     this.afterMiddleware = options.afterMiddleware || noop;
+    this.forbiddenAssets = [
+      '/fastbootAssetMap.json',
+      '/package.json',
+      '/node_modules/*',
+      '/fastboot/*'
+    ];
 
     this.app = express();
   }
@@ -45,6 +51,11 @@ class ExpressHTTPServer {
 
     if (this.distPath) {
       app.get('/', fastbootMiddleware);
+      this.forbiddenAssets.forEach(function(path) {
+        app.get(path, function(req, res) {
+          res.sendStatus(404);
+        });
+      });
       app.use(express.static(this.distPath));
       app.get('/assets/*', function(req, res) {
         res.sendStatus(404);
